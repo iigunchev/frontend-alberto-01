@@ -8,7 +8,7 @@ const initialFormValues = {
 const postForm = async (url, values) => {
     const result =  new Promise((resolve, reject) => {
         setTimeout(() => {
-            resolve('error')
+            resolve('ok')
         }, 3000)
     })
     return result;
