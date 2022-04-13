@@ -5,12 +5,22 @@ const initialFormValues = {
     message: ''
 }
 
+const postForm = async (url, values) => {
+    const result =  new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve('error')
+        }, 3000)
+    })
+    return result;
+}
 
 const Form = () => {
     const [formValues, setFormValues] = useState(initialFormValues);
     const [formErrors, setFormErrors] = useState('');
 
-    const [pending, setPending] = useState(false);
+    const [postPending, setPostPending] = useState(null);
+    const [postSuccess, setPostSuccess] = useState(null);
+    const [postError, setPostError] = useState(null);
 
     const handleChange = e => {
         const { name, value } = e.target;
@@ -19,6 +29,7 @@ const Form = () => {
             [name]: value
         }))
     }
+    // Validation
     const validateForm = values => {
         const {username, message} = values;
         let usernameError = '';
@@ -26,6 +37,7 @@ const Form = () => {
     
         if (!username) usernameError = 'Please enter a username';
         if (!message) messageError = 'Please enter a message';
+        if (message.length > 144) usernameError = 'Message < 144 chars';
     
     
         if (usernameError || messageError) {
@@ -39,8 +51,19 @@ const Form = () => {
         e.preventDefault();
         const isValid = validateForm(formValues);
         if (isValid) {
-            setPending(true);
-            console.log(formValues);
+            setPostPending(true);
+            postForm(formValues)
+                .then(res => {
+                    if(res === 'ok') {
+                        setPostSuccess(true)
+                        setPostPending(false);
+                    }
+                    if(res === 'error') {
+                        setPostError('There has been an error.')
+                        setPostPending(false);
+                    }
+                })
+                .catch(error => setPostError({fetchError: error}));
             // Reset form values
             setFormValues(initialFormValues);
             setFormErrors('')
@@ -67,9 +90,10 @@ const Form = () => {
                 <div>{formErrors.message}</div>
                 <button 
                     type="submit"
-                    disabled={pending ? true : false}
+                    disabled={postPending ? true : false}
                 >Post</button>
             </form>
+            <div>{postError}</div>
         </section>
     )
 }
