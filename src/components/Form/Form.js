@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 
 const initialFormValues = {
     username: '',
     message: ''
 }
 
+
 const Form = () => {
-    const [formValues, setFormValues] = useState(initialFormValues)
+    const [formValues, setFormValues] = useState(initialFormValues);
+    const [formErrors, setFormErrors] = useState('');
+
+    const [pending, setPending] = useState(false);
 
     const handleChange = e => {
         const { name, value } = e.target;
@@ -15,15 +19,33 @@ const Form = () => {
             [name]: value
         }))
     }
-
+    const validateForm = values => {
+        const {username, message} = values;
+        let usernameError = '';
+        let messageError = '';
+    
+        if (!username) usernameError = 'Please enter a username';
+        if (!message) messageError = 'Please enter a message';
+    
+    
+        if (usernameError || messageError) {
+            setFormErrors({username: usernameError, message: messageError});
+            return false;
+        }
+        
+        return true;
+    }
     const handleSubmit = e => {
         e.preventDefault();
-        console.log(formValues)
+        const isValid = validateForm(formValues);
+        if (isValid) {
+            setPending(true);
+            console.log(formValues);
+            // Reset form values
+            setFormValues(initialFormValues);
+            setFormErrors('')
+        }
     }
-
-    // useEffect(() => {
-    //     console.log(formValues)
-    // }, [formValues])
 
     return (
         <section>
@@ -35,13 +57,18 @@ const Form = () => {
                     onChange={handleChange}
                     value={formValues.username}
                 />
+                <div>{formErrors.username}</div>
                 <textarea 
                     name="message" 
                     placeholder="Message"
                     onChange={handleChange}
                     value={formValues.message}
                 />
-                <button type="submit">Post</button>
+                <div>{formErrors.message}</div>
+                <button 
+                    type="submit"
+                    disabled={pending ? true : false}
+                >Post</button>
             </form>
         </section>
     )
