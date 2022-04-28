@@ -1,33 +1,24 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import { postTweet } from '../../services/tweets';
 
 const initialFormValues = {
     username: '',
     message: ''
 }
 
-const postForm = async (url, values) => {
-    const result =  new Promise((resolve, reject) => {
-        setTimeout(() => {
-            resolve('ok')
-        }, 3000)
-    })
-    return result;
-}
+
 
 const Form = () => {
     const [formValues, setFormValues] = useState(initialFormValues);
     const [formErrors, setFormErrors] = useState('');
 
-    const [postPending, setPostPending] = useState(null);
-    const [postSuccess, setPostSuccess] = useState(null);
-    const [postError, setPostError] = useState(null);
+    const [queryStatus, setQueryStatus] = useState('');
+    const [postError, setPostError] = useState('');
 
     const handleChange = e => {
         const { name, value } = e.target;
-        setFormValues(prevState => ({
-            ...prevState,
-            [name]: value
-        }))
+        setFormValues({...formValues, [name]: value});
+        
     }
     // Validation
     const validateForm = values => {
@@ -50,24 +41,24 @@ const Form = () => {
     const handleSubmit = e => {
         e.preventDefault();
         const isValid = validateForm(formValues);
-        if (isValid) {
-            setPostPending(true);
-            postForm(formValues)
-                .then(res => {
-                    if(res === 'ok') {
-                        setPostSuccess(true)
-                        setPostPending(false);
-                    }
-                    if(res === 'error') {
-                        setPostError('There has been an error.')
-                        setPostPending(false);
-                    }
-                })
-                .catch(error => setPostError({fetchError: error}));
-            // Reset form values
-            setFormValues(initialFormValues);
-            setFormErrors('')
-        }
+        if (!isValid) return;
+
+        setQueryStatus('pending');
+        postTweet(formValues)
+            .then(res => {
+                if(res === 'error') {
+                    setPostError('There has been an error.')
+                    setQueryStatus('');
+                }
+                if(res === 'ok') {
+                    setQueryStatus('success');
+                }
+            })
+            .catch(error => setPostError({fetchError: error}));
+        // Reset form values
+        setFormValues(initialFormValues);
+        setFormErrors('')
+        
     }
 
     return (
@@ -90,7 +81,7 @@ const Form = () => {
                 <div>{formErrors.message}</div>
                 <button 
                     type="submit"
-                    disabled={postPending ? true : false}
+                    disabled={queryStatus === 'pending' ? true : false}
                 >Post</button>
             </form>
             <div>{postError}</div>
